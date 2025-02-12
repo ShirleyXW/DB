@@ -33,7 +33,8 @@ class DBManager {
       console.error("Database not connected!");
       return;
     }
-    const createPatientTable = `CREATE TABLE IF NOT EXISTS patient (
+    const createPatientTable = 
+    `CREATE TABLE IF NOT EXISTS patient (
       patient_id INT(11) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       dateOfBirth DATE NOT NULL
@@ -51,6 +52,17 @@ class DBManager {
 
 // Test the DBManager class
 const dbManager = new DBManager();
-dbManager.connectDatabase();
-dbManager.createPatientTable();
-dbManager.disconnectDatabase();
+
+class Server {
+  constructor(dbManager, requestHandler) {
+    this.dbManager = dbManager;
+    this.requestHandler = requestHandler;
+  }
+  run(){
+    const Server = http.createServer((req, res) => {
+      const parsedUrl = url.parse(req.url, true);
+      const pathName = parsedUrl.pathname;
+      const query = parsedUrl.query;
+    })
+  }
+}
