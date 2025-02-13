@@ -47,19 +47,31 @@ class DBManager {
     }
   }
 
-  async insertMultiple(records) {
+  async execute(statement) {
     if (!this.connection) {
       throw new Error("Database not connected!");
     }
-    const recordsValues = records.map((record) => [
+    try {
+      const [result] = await this.connection.query(statement);
+      return result;
+    } catch (err) {
+      console.error("execute statement failure: " + err.stack);
+      throw err;
+    }
+  }
+  async insert(records) {
+    if (!this.connection) {
+      throw new Error("Database not connected!");
+    }
+    const insertRecord = `INSERT INTO patient (name, dateOfBirth) VALUES ?`;
+    const recordValues = records.map((record) => [
       record.name,
       record.dateOfBirth,
     ]);
-    const insertMultipleRecords = `INSERT INTO patient (name, dateOfBirth) VALUES ?`;
     try {
-      await this.connection.query(insertMultipleRecords, [recordsValues]);
+      await this.connection.query(insertRecord, [recordValues]);
     } catch (err) {
-      console.error("insert multiple records failure: " + err.stack);
+      console.error("insert record failure: " + err.stack);
       throw err;
     }
   }
@@ -75,9 +87,39 @@ class RequestHandler {
     res.end(JSON.stringify({ isSuccess, message }));
   }
 
-  async insertBulkRecords(req, res) {
+  async selectPatient(req, res, query) {
     if (!this.dbManager.connection) {
-      console.error("Database not connected!");
+      this.sendResponse(res, 500, false, "Database not connected!");
+      return;
+    }
+    const statement = query.sql;
+    if (!statement) {
+      this.sendResponse(res, 400, false, "Missing SQL query parameter");
+      return;
+    }
+    if (!statement.trim().toLowerCase().startsWith("select")) {
+      this.sendResponse(res, 400, false, "Only SELECT queries are allowed");
+      return;
+    }
+    try {
+      const rows = await this.dbManager.execute(statement);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ isSuccess: true, data: rows }));
+    } catch (err) {
+      this.sendResponse(
+        res,
+        500,
+        false,
+        `Failed to execute query: ${err.message}`
+      );
+    }
+  }
+  async insertBulkRecords(req, res) {
+    this.insertPatient(req, res);
+  }
+
+  async insertPatient(req, res) {
+    if (!this.dbManager.connection) {
       this.sendResponse(res, 500, false, "Database not connected!");
       return;
     }
@@ -85,31 +127,30 @@ class RequestHandler {
     req.on("data", (chunk) => {
       body += chunk.toString();
     });
-    console.log(`Received body: ${body}`);
     req.on("end", async () => {
       try {
         if (!body) {
           this.sendResponse(res, 400, false, "Cannot insert empty records");
           return;
         }
-
-        let records;
+        let record;
+        console.log("received body: " + body);
         try {
-          records = JSON.parse(body);
+          record = JSON.parse(body);
         } catch (err) {
           this.sendResponse(res, 400, false, "Invalid JSON format");
           return;
         }
 
         try {
-          await this.dbManager.insertMultiple(records);
+          await this.dbManager.insert(record);
           this.sendResponse(res, 200, true, "Insert records success");
         } catch (err) {
           this.sendResponse(
             res,
             500,
             false,
-            `Failed to insert records: ${err.message}`
+            `Failed to insert record: ${err.message}`
           );
         }
       } catch {
@@ -129,8 +170,11 @@ class Server {
       const parsedUrl = url.parse(req.url, true);
       const pathName = parsedUrl.pathname;
       const query = parsedUrl.query;
-      if (pathName === "/insert-bulk-records" && req.method === "POST") {
-        // Insert a bulk of patient records
+      if (pathName === "/insert" && req.method === "POST") {
+        this.requestHandler.insertPatient(req, res);
+      } else if (pathName === "/select" && req.method === "GET") {
+        this.requestHandler.selectPatient(req, res, query);
+      } else if (pathName === "/insert-bulk-records" && req.method === "POST") {
         this.requestHandler.insertBulkRecords(req, res);
       } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
