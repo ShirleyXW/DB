@@ -1,6 +1,7 @@
 const mysql = require("mysql2/promise");
 const http = require("http");
 const url = require("url");
+require("dotenv").config();
 
 class DBManager {
   constructor() {
@@ -9,10 +10,10 @@ class DBManager {
   async connectDatabase() {
     try {
       this.connection = await mysql.createConnection({
-        host: "localhost",
-        user: "lab5_user",
-        password: "comp4537",
-        database: "lab5",
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
       });
       console.log(
         "connected to MySQL, connection ID: " + this.connection.threadId
