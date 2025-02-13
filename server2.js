@@ -170,11 +170,14 @@ class Server {
       const parsedUrl = url.parse(req.url, true);
       const pathName = parsedUrl.pathname;
       const query = parsedUrl.query;
-      if (pathName === "/insert" && req.method === "POST") {
+      if (pathName === "/api/v1/sql/insert" && req.method === "POST") {
         this.requestHandler.insertPatient(req, res);
-      } else if (pathName === "/select" && req.method === "GET") {
+      } else if (pathName === "/api/v1/sql/select" && req.method === "GET") {
         this.requestHandler.selectPatient(req, res, query);
-      } else if (pathName === "/insert-bulk-records" && req.method === "POST") {
+      } else if (
+        pathName === "/api/v1/sql/insert-bulk-records" &&
+        req.method === "POST"
+      ) {
         this.requestHandler.insertBulkRecords(req, res);
       } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
