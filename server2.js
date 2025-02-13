@@ -191,8 +191,8 @@ class Server {
   }
 }
 
+const dbManager = new DBManager();
 (async () => {
-  const dbManager = new DBManager();
   const requestHandler = new RequestHandler(dbManager);
   const server = new Server(dbManager, requestHandler);
   try {
@@ -206,3 +206,11 @@ class Server {
     console.error("connect database failure: " + err.stack);
   }
 })();
+
+// Code sourced from: ChatGPT, OpenAI
+// For gracefully closing the database connection and handling SIGINT signal
+process.on("SIGINT", async () => {
+  console.log("Closing database connection...");
+  await dbManager.disconnectDatabase();
+  process.exit(0);
+});
