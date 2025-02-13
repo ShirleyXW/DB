@@ -10,8 +10,8 @@ class DBManager {
     try {
       this.connection = await mysql.createConnection({
         host: "localhost",
-        user: "root",
-        password: "Lili1996",
+        user: "lab5_user",
+        password: "comp4537",
         database: "lab5",
       });
       console.log(
@@ -149,7 +149,7 @@ class Server {
   const server = new Server(dbManager, requestHandler);
   try {
     await dbManager.connectDatabase();
-    await dbManager.createPatientTable();
+    // await dbManager.createPatientTable();
     if (!dbManager.connection) {
       return;
     }
