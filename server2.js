@@ -108,7 +108,12 @@ class RequestHandler {
     }
     try {
       const rows = await this.dbManager.execute(statement);
-      res.writeHead(200, { "Content-Type": "application/json" });
+      res.writeHead(200, { 
+        "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+       });
       res.end(JSON.stringify({ isSuccess: true, data: rows }));
     } catch (err) {
       this.sendResponse(
