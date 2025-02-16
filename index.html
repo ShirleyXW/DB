@@ -12,6 +12,7 @@
         <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
         <title>COMP4537 - LAB 5</title>
         <link rel="stylesheet" href="style.css" />
+        <script src="server1.js" type="module" defer></script>
     </head>
     <body class="bg-gray-100">
         <div id="app" class="grid min-h-screen">
@@ -21,67 +22,64 @@
             <main class="mx-7 my-10">
                 <div class="flex flex-col gap-6">
                     <!-- Default Data Section -->
-                    <div class="bg-white p-5 rounded-lg shadow-md">
-                        <h2 class="text-2xl font-bold text-blue-700">Add Default Data</h2>
-                        <p class="text-gray-700">Click the button below to add default data.</p>
-                        <ul class="grid grid-cols-2 gap-3 border-2 p-4 rounded-md bg-gray-50">
+                    <div class="bg-white p-5 rounded-lg shadow-md" id="default-adding-box">
+                        <h2 class="text-2xl font-bold text-blue-700" id="default-adding-title"></h2>
+                        <p class="text-gray-700" id="default-adding-description"></p>
+                        <ul
+                            class="grid grid-cols-2 gap-3 border-2 p-4 rounded-md bg-gray-50"
+                            id="default-adding-user-box"
+                        >
                             <li class="border p-2 rounded-md shadow-sm bg-white">
-                                <p class="font-semibold">
-                                    Name: <span class="text-blue-600">Sara Brown</span>
-                                </p>
-                                <p class="text-gray-500">BOD: 1901-01-01</p>
+                                <p class="font-semibold"></p>
+                                <p class="text-gray-500"></p>
                             </li>
                             <li class="border p-2 rounded-md shadow-sm bg-white">
-                                <p class="font-semibold">
-                                    Name: <span class="text-blue-600">John Smith</span>
-                                </p>
-                                <p class="text-gray-500">BOD: 1901-01-01</p>
+                                <p class="font-semibold"></p>
+                                <p class="text-gray-500"></p>
                             </li>
                             <li class="border p-2 rounded-md shadow-sm bg-white">
-                                <p class="font-semibold">
-                                    Name: <span class="text-blue-600">Sara Brown</span>
-                                </p>
-                                <p class="text-gray-500">BOD: 1901-01-01</p>
+                                <p class="font-semibold"></p>
+                                <p class="text-gray-500"></p>
                             </li>
                             <li class="border p-2 rounded-md shadow-sm bg-white">
-                                <p class="font-semibold">
-                                    Name: <span class="text-blue-600">Sara Brown</span>
-                                </p>
-                                <p class="text-gray-500">BOD: 1901-01-01</p>
+                                <p class="font-semibold"></p>
+                                <p class="text-gray-500"></p>
                             </li>
                         </ul>
                         <div class="text-center mt-4">
                             <button
                                 class="py-3 px-6 bg-blue-500 text-white rounded-md hover:bg-blue-600 shadow-md"
-                            >
-                                ADD
-                            </button>
+                                id="default-adding-button"
+                            ></button>
                         </div>
                         <div class="result-box mt-5 bg-gray-200 p-3 rounded-md">
-                            <h3 class="text-xl font-bold text-gray-800">Data Insert Result:</h3>
+                            <h3
+                                class="text-xl font-bold text-gray-800"
+                                id="default-adding-result-title"
+                            ></h3>
                             <p class="result-msg h-5 text-gray-700"></p>
                         </div>
                     </div>
 
                     <!-- SQL Query Section -->
                     <div class="bg-white p-5 rounded-lg shadow-md">
-                        <h2 class="text-2xl font-bold text-blue-700">Execute SQL Query</h2>
-                        <p class="text-gray-700">Enter a SQL query below and click "Execute".</p>
+                        <h2 class="text-2xl font-bold text-blue-700" id="query-title"></h2>
+                        <p class="text-gray-700" id="query-description"></p>
                         <textarea
                             id="sql-query"
                             class="border-2 border-gray-300 rounded-md p-3 w-full min-h-[100px] bg-gray-50 shadow-sm"
-                            placeholder="Enter your SQL query here..."
                         ></textarea>
                         <div class="text-center mt-4">
                             <button
                                 id="execute-btn"
                                 class="py-3 px-6 bg-green-500 text-white rounded-md hover:bg-green-600 shadow-md"
-                            >
-                                Execute Query
-                            </button>
+                            ></button>
                         </div>
                         <div class="result-box mt-5 bg-gray-200 p-3 rounded-md">
-                            <h3 class="text-xl font-bold text-gray-800">Query Result:</h3>
+                            <h3
+                                class="text-xl font-bold text-gray-800"
+                                id="query-result-title"
+                            ></h3>
                             <p id="query-result" class="h-5 text-gray-700"></p>
                         </div>
                     </div>
