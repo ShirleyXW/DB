@@ -42,7 +42,6 @@ class DBManager {
 
     try {
       await this.connection.query(createPatientTable);
-      console.log("create patient table success");
     } catch (err) {
       console.error("create patient table failure: " + err.stack);
     }
@@ -84,7 +83,12 @@ class RequestHandler {
   }
 
   sendResponse(res, statusCode, isSuccess, message) {
-    res.writeHead(statusCode, { "Content-Type": "application/json" });
+    res.writeHead(statusCode, {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    });
     res.end(JSON.stringify({ isSuccess, message }));
   }
 
