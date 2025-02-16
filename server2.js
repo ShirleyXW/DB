@@ -209,7 +209,7 @@ const dbManager = new DBManager();
     const server = new Server(dbManager, requestHandler);
     try {
         await dbManager.connectDatabase();
-        // await dbManager.createPatientTable();
+        await dbManager.createPatientTable();
         if (!dbManager.connection) {
             return;
         }
