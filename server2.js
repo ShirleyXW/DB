@@ -61,12 +61,21 @@ class DBManager {
         if (!this.connection) {
             throw new Error("Database not connected!");
         }
-        const insertRecord = `INSERT INTO patient (name, dateOfBirth) VALUES ?`;
-        const recordValues = records.map((record) => [record.name, record.dateOfBirth]);
+        const isBulkInsert = Array.isArray(records);
+
+        const insertRecord = isBulkInsert
+            ? `INSERT INTO patient (name, dateOfBirth) VALUES ?`
+            : `INSERT INTO patient (name, dateOfBirth) VALUES (?, ?)`;
+
+        const recordValues = isBulkInsert
+            ? records.map((record) => [record.name, record.dateOfBirth]) // Multiple data
+            : [records.name, records.dateOfBirth]; // Single data
         try {
             console.log("Executing SQL Insert:", insertRecord);
             console.log("With Values:", recordValues);
-            const [result] = await this.connection.query(insertRecord, [recordValues]);
+            const [result] = isBulkInsert
+                ? await this.connection.query(insertRecord, [recordValues])
+                : await this.connection.query(insertRecord, recordValues);
 
             console.log("Insert result:", result);
 
