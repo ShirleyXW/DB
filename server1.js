@@ -95,10 +95,41 @@ class DBController {
     }
 }
 
+class EventHandler {
+    constructor() {
+        this.defaultUsers = [
+            { name: "Sara Brown", dateOfBirth: "1901-01-01" },
+            { name: "John Smith", dateOfBirth: "1931-01-01" },
+            { name: "Jack Ma", dateOfBirth: "1961-01-30" },
+            { name: "Elon Musk", dateOfirth: "1999-01-01" },
+        ];
+        this.dbController = new DBController("https://bcit-anthony-sh-s.com");
+        this.addBtn = document.getElementById("default-adding-button");
+    }
+    handleAddBtnEvent() {
+        this.addBtn.addEventListener("click", async () => {
+            console.log("Add button clicked");
+            try {
+                const response = await this.dbController.executeInsertQuery(
+                    this.defaultUsers,
+                    true
+                );
+                console.log(response);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    }
+    init() {
+        this.handleAddBtnEvent();
+    }
+}
+
 class Server {
     constructor() {
         this.dbController = new DBController("https://bcit-anthony-sh-s.com");
         this.textSetter = new TextSetter();
+        this.eventHandler = new EventHandler();
     }
     async testSelect() {
         const result = await this.dbController.executeSelectQuery("select * from patient");
@@ -111,8 +142,7 @@ class Server {
     }
     run() {
         this.textSetter.init();
-        // this.testSelect();
-        this.testInsert();
+        this.eventHandler.init();
     }
 }
 

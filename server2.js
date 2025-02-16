@@ -54,7 +54,7 @@ class DBManager {
             return result;
         } catch (err) {
             console.error("execute statement failure: " + err.stack);
-            throw err;
+            return { isSuccess: false, message: `SQL Execution Error: ${err.message}` };
         }
     }
     async insert(records) {
