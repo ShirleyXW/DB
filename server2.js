@@ -163,7 +163,7 @@ class RequestHandler {
                     console.error("Insert Query Error:", err);
                     this.sendResponse(res, 500, false, `Failed to insert record: ${err.message}`);
                 }
-            } catch {
+            } catch (err) {
                 console.error("Internal Server Error:", err);
                 this.sendResponse(res, 500, false, "Internal server error");
             }
