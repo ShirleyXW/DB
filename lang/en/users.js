@@ -1,6 +1,6 @@
 export const htmlText = {
     header: "COMP4537 - LAB5",
-    footer: "",
+    footer: "© 2025 COMP 4537 - BCIT. All rights reserved by Anthony & Shirley.",
     addingDefaultTitle: "Add Default Data",
     addingDefaultDescription: "Click the button below to add default data.",
     addingDefaultBtn: "ADD",

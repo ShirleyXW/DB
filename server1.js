@@ -1,7 +1,5 @@
 import { htmlText, defaultUser } from "./lang/en/users.js";
 
-const defaultAddingBox = document.getElementById("default-adding-box");
-
 class TextSetter {
     constructor() {
         this.defaultAddingTitle = document.getElementById("default-adding-title");
@@ -16,6 +14,13 @@ class TextSetter {
         this.queryExecutionQuery = document.getElementById("sql-query");
         this.queryExecutionBtn = document.getElementById("execute-btn");
         this.queryExecutionResultTitle = document.getElementById("query-result-title");
+        this.header = document.querySelector("header");
+        this.footer = document.querySelector("footer");
+    }
+    setHeaderAndFooter() {
+        console.log(this.header);
+        this.header.textContent = htmlText.header;
+        this.footer.textContent = htmlText.footer;
     }
     setAddingDefaultBoxText() {
         this.defaultAddingTitle.textContent = htmlText.addingDefaultTitle;
@@ -44,6 +49,7 @@ class TextSetter {
         this.queryExecutionResultTitle.textContent = htmlText.queryExecutionResultTitle;
     }
     init() {
+        this.setHeaderAndFooter();
         this.setAddingDefaultBoxText();
         this.setQueryBoxText();
     }
@@ -128,7 +134,9 @@ class EventHandler {
     handleExecuteQueryBtnEvent() {
         const resultMsgP = document.getElementById("query-result");
         const queryInput = document.getElementById("sql-query");
+        const queryTableContainer = document.getElementById("query-table-container");
         this.queryBtn.addEventListener("click", async () => {
+            queryTableContainer.innerHTML = "";
             const inputtedQuery = queryInput.value.trim();
             console.log(inputtedQuery);
             if (!inputtedQuery) {
@@ -137,8 +145,8 @@ class EventHandler {
                 return;
             }
             const firstWord = inputtedQuery.split(/\s+/)[0].toUpperCase();
-            console.log(firstWord);
             if (firstWord !== "SELECT" && firstWord !== "INSERT") {
+                resultMsgP.classList.remove("text-blue-700");
                 resultMsgP.classList.add("text-red-700");
                 resultMsgP.textContent = "Only SELECT and INSERT queries are supported.";
                 return;
@@ -147,14 +155,133 @@ class EventHandler {
                 let response;
                 if (firstWord === "SELECT") {
                     response = await this.dbController.executeSelectQuery(inputtedQuery);
+                    if (response.isSuccess && response.data.length > 0) {
+                        this.displayQueryResults(response.data, queryTableContainer);
+                        resultMsgP.classList.remove("text-red-700");
+                        resultMsgP.classList.add("text-blue-700");
+                        resultMsgP.textContent = "Query executed successfully.";
+                    } else {
+                        resultMsgP.classList.remove("text-blue-700");
+                        resultMsgP.classList.add("text-red-700");
+                        resultMsgP.textContent = "No results found.";
+                    }
                 } else if (firstWord === "INSERT") {
-                    response = await this.dbController.executeInsertQuery(inputtedQuery, false);
+                    try {
+                        const userData = this.parseSQLInsert(inputtedQuery);
+                        console.log("USERDATA: ", userData);
+                        const isBulk = Array.isArray(userData);
+                        response = await this.dbController.executeInsertQuery(userData, isBulk);
+                        console.log("INSERT Response", response);
+                        if (response.isSuccess) {
+                            resultMsgP.classList.remove("text-red-700");
+                            resultMsgP.classList.add("text-blue-700");
+                            resultMsgP.textContent = response.message;
+                        } else {
+                            resultMsgP.classList.remove("text-blue-700");
+                            resultMsgP.classList.add("text-red-700");
+                            resultMsgP.textContent = response.message;
+                        }
+                    } catch (error) {
+                        resultMsgP.classList.remove("text-blue-700");
+                        resultMsgP.classList.add("text-red-700");
+                        resultMsgP.textContent = "Invalid column values format";
+                    }
+
+                    // resultMsgP.textContent = response.message;
                 }
                 console.log(response);
             } catch (err) {
                 console.error(err);
             }
         });
+    }
+    parseSQLInsert(query) {
+        const match = query.match(/\bINSERT INTO\s+(\w+)\s*(?:\((.+?)\))?\s*VALUES\s*(.+?);?$/is);
+        if (!match) {
+            throw new Error("Invalid SQL INSERT statement");
+        }
+
+        const tableName = match[1];
+        const columns = match[2] ? match[2].split(/\s*,\s*/) : ["name", "dateOfBirth"]; // 명시된 컬럼 또는 기본 컬럼
+        let valuesPart = match[3];
+
+        // 줄바꿈과 공백을 정리하여 처리
+        valuesPart = valuesPart.replace(/\s*\n\s*/g, " ").trim();
+
+        // 여러 개의 VALUES 그룹을 분리
+        const values = valuesPart.split(/\),\s*\(/).map((row) => row.replace(/[()]/g, ""));
+
+        const records = values.map((row) => {
+            // 값 추출 (문자열, 숫자, 날짜 포함)
+            const rowValues = row.match(
+                /"([^"]*)"|'([^']*)'|(\d{4}-\d{2}-\d{2})|(\d+\.\d+)|(\d+)/g
+            );
+            if (!rowValues || rowValues.length !== columns.length) {
+                throw new Error("Invalid column values format");
+            }
+
+            const obj = {};
+            columns.forEach((col, i) => {
+                let value = rowValues[i].replace(/['"]/g, "");
+                obj[col] = isNaN(value) || /\D/.test(value) ? value : Number(value);
+            });
+
+            return obj;
+        });
+
+        return records.length === 1 ? records[0] : records;
+    }
+
+    displayQueryResults(data, container) {
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+            container.innerHTML = "<p class='text-gray-700'>No results found.</p>";
+            return;
+        }
+
+        const table = document.createElement("table");
+        table.classList.add(
+            "w-full",
+            "border-collapse",
+            "border",
+            "border-gray-300",
+            "shadow-md",
+            "rounded-md",
+            "bg-white"
+        );
+
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        headerRow.classList.add("bg-gray-200", "text-left");
+
+        const columns = Object.keys(data[0]);
+        columns.forEach((col) => {
+            const th = document.createElement("th");
+            th.classList.add("border", "px-4", "py-2", "text-gray-700");
+            th.textContent = col.replace(/_/g, " ").toUpperCase();
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        data.forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.classList.add("border-t", "hover:bg-gray-100");
+
+            columns.forEach((col) => {
+                const td = document.createElement("td");
+                td.classList.add("border", "px-4", "py-2");
+                td.textContent = row[col] || "-";
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
     }
     init() {
         this.handleAddBtnEvent();
@@ -168,15 +295,7 @@ class Server {
         this.textSetter = new TextSetter();
         this.eventHandler = new EventHandler();
     }
-    async testSelect() {
-        const result = await this.dbController.executeSelectQuery("select * from patient");
-        console.log(result);
-    }
-    async testInsert() {
-        const newPatient = { name: "John Doe", dateOfBirth: "1985-08-15" };
-        const result = await this.dbController.executeInsertQuery(newPatient);
-        console.log(result);
-    }
+
     run() {
         this.textSetter.init();
         this.eventHandler.init();

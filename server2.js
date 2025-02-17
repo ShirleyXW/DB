@@ -189,9 +189,6 @@ class Server {
             } else {
                 res.writeHead(404, {
                     "Content-Type": "text/plain",
-                    // "Access-Control-Allow-Origin": "*",
-                    // "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                    // "Access-Control-Allow-Headers": "Content-Type",
                 });
                 res.end("404 Not Found");
             }
