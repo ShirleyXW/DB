@@ -18,14 +18,12 @@ class TextSetter {
         this.footer = document.querySelector("footer");
     }
     setHeaderAndFooter() {
-        console.log(this.header);
         this.header.textContent = htmlText.header;
         this.footer.textContent = htmlText.footer;
     }
     setAddingDefaultBoxText() {
         this.defaultAddingTitle.textContent = htmlText.addingDefaultTitle;
         this.defaultAddingDescription.textContent = htmlText.addingDefaultDescription;
-        console.log(this.defaultUserItems);
         [...this.defaultUserItems].forEach((li, index) => {
             const pEls = li.getElementsByTagName("p");
             const user = defaultUser[index];
@@ -112,7 +110,6 @@ class EventHandler {
     handleAddBtnEvent() {
         const resultMsgP = document.getElementById("result-msg");
         this.addBtn.addEventListener("click", async () => {
-            console.log("Add button clicked");
             try {
                 const response = await this.dbController.executeInsertQuery(
                     this.defaultUsers,
@@ -138,7 +135,6 @@ class EventHandler {
         this.queryBtn.addEventListener("click", async () => {
             queryTableContainer.innerHTML = "";
             const inputtedQuery = queryInput.value.trim();
-            console.log(inputtedQuery);
             if (!inputtedQuery) {
                 resultMsgP.classList.add("text-red-700");
                 resultMsgP.textContent = "Please enter SQL query.";
@@ -186,8 +182,6 @@ class EventHandler {
                         resultMsgP.classList.add("text-red-700");
                         resultMsgP.textContent = "Invalid column values format";
                     }
-
-                    // resultMsgP.textContent = response.message;
                 }
                 console.log(response);
             } catch (err) {
