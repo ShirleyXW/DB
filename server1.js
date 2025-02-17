@@ -97,12 +97,14 @@ class EventHandler {
             { name: "Sara Brown", dateOfBirth: "1901-01-01" },
             { name: "John Smith", dateOfBirth: "1931-01-01" },
             { name: "Jack Ma", dateOfBirth: "1961-01-30" },
-            { name: "Elon Musk", dateOfirth: "1999-01-01" },
+            { name: "Elon Musk", dateOfBirth: "1999-01-01" },
         ];
         this.dbController = new DBController("https://bcit-anthony-sh-s.com");
         this.addBtn = document.getElementById("default-adding-button");
+        this.queryBtn = document.getElementById("execute-btn");
     }
     handleAddBtnEvent() {
+        const resultMsgP = document.getElementById("result-msg");
         this.addBtn.addEventListener("click", async () => {
             console.log("Add button clicked");
             try {
@@ -110,6 +112,44 @@ class EventHandler {
                     this.defaultUsers,
                     true
                 );
+                if (response.isSuccess) {
+                    resultMsgP.classList.add("text-blue-700");
+                    resultMsgP.textContent = response.message;
+                } else {
+                    resultMsgP.classList.add("text-red-700");
+                    resultMsgP.textContent = response.message;
+                }
+                console.log(response);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    }
+    handleExecuteQueryBtnEvent() {
+        const resultMsgP = document.getElementById("query-result");
+        const queryInput = document.getElementById("sql-query");
+        this.queryBtn.addEventListener("click", async () => {
+            const inputtedQuery = queryInput.value.trim();
+            console.log(inputtedQuery);
+            if (!inputtedQuery) {
+                resultMsgP.classList.add("text-red-700");
+                resultMsgP.textContent = "Please enter SQL query.";
+                return;
+            }
+            const firstWord = inputtedQuery.split(/\s+/)[0].toUpperCase();
+            console.log(firstWord);
+            if (firstWord !== "SELECT" && firstWord !== "INSERT") {
+                resultMsgP.classList.add("text-red-700");
+                resultMsgP.textContent = "Only SELECT and INSERT queries are supported.";
+                return;
+            }
+            try {
+                let response;
+                if (firstWord === "SELECT") {
+                    response = await this.dbController.executeSelectQuery(inputtedQuery);
+                } else if (firstWord === "INSERT") {
+                    response = await this.dbController.executeInsertQuery(inputtedQuery, false);
+                }
                 console.log(response);
             } catch (err) {
                 console.error(err);
@@ -118,6 +158,7 @@ class EventHandler {
     }
     init() {
         this.handleAddBtnEvent();
+        this.handleExecuteQueryBtnEvent();
     }
 }
 
