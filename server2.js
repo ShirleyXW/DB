@@ -101,17 +101,14 @@ class RequestHandler {
 
     async selectPatient(req, res, query) {
         if (!this.dbManager.connection) {
-            this.sendResponse(res, 500, false, "Database not connected!");
-            return;
+            return this.sendResponse(res, 500, false, "Database not connected!");
         }
         const statement = query.sql;
         if (!statement) {
-            this.sendResponse(res, 400, false, "Missing SQL query parameter");
-            return;
+            return this.sendResponse(res, 400, false, "Missing SQL query parameter");
         }
         if (!statement.trim().toLowerCase().startsWith("select")) {
-            this.sendResponse(res, 400, false, "Only SELECT queries are allowed");
-            return;
+            return this.sendResponse(res, 400, false, "Only SELECT queries are allowed");
         }
         try {
             const rows = await this.dbManager.execute(statement);
@@ -123,7 +120,7 @@ class RequestHandler {
             });
             res.end(JSON.stringify({ isSuccess: true, data: rows }));
         } catch (err) {
-            this.sendResponse(res, 500, false, `Failed to execute query: ${err.message}`);
+            return this.sendResponse(res, 500, false, `Failed to execute query: ${err.message}`);
         }
     }
     async insertBulkRecords(req, res) {
@@ -132,8 +129,7 @@ class RequestHandler {
 
     async insertPatient(req, res) {
         if (!this.dbManager.connection) {
-            this.sendResponse(res, 500, false, "Database not connected!");
-            return;
+            return this.sendResponse(res, 500, false, "Database not connected!");
         }
         let body = "";
         req.on("data", (chunk) => {
@@ -142,30 +138,33 @@ class RequestHandler {
         req.on("end", async () => {
             try {
                 if (!body) {
-                    this.sendResponse(res, 400, false, "Cannot insert empty records");
-                    return;
+                    return this.sendResponse(res, 400, false, "Cannot insert empty records");
                 }
                 let record;
                 console.log("received body: " + body);
                 try {
                     record = JSON.parse(body);
                 } catch (err) {
-                    this.sendResponse(res, 400, false, "Invalid JSON format");
-                    return;
+                    return this.sendResponse(res, 400, false, "Invalid JSON format");
                 }
 
                 try {
                     console.log("Attempting to insert record:", record);
-                    await this.dbManager.insert(record);
-                    console.log("Insert success:", record);
-                    this.sendResponse(res, 200, true, "Insert records success");
+                    const result = await this.dbManager.insert(record);
+                    console.log("Insert success:", result);
+                    return this.sendResponse(res, 200, true, "Insert records success");
                 } catch (err) {
                     console.error("Insert Query Error:", err);
-                    this.sendResponse(res, 500, false, `Failed to insert record: ${err.message}`);
+                    return this.sendResponse(
+                        res,
+                        500,
+                        false,
+                        `Failed to insert record: ${err.message}`
+                    );
                 }
             } catch (err) {
                 console.error("Internal Server Error:", err);
-                this.sendResponse(res, 500, false, "Internal server error");
+                return this.sendResponse(res, 500, false, "Internal server error");
             }
         });
     }

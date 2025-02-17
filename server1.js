@@ -82,15 +82,11 @@ class DBController {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
             });
-            if (!response.ok) {
-                throw new Error(`Error: ${response.status}`);
-            }
-
             const result = await response.json();
             return result;
         } catch (err) {
             console.error(err);
-            return { isSuccess: false, message: err.message };
+            return { isSuccess: false, message: `INSERT ERROR: ${err.message}` };
         }
     }
 }
