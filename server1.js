@@ -106,7 +106,7 @@ class EventHandler {
             { name: "Jack Ma", dateOfBirth: "1961-01-30" },
             { name: "Elon Musk", dateOfBirth: "1999-01-01" },
         ];
-        this.dbController = new DBController("https://db-05b1.onrender.com");
+        this.dbController = new DBController("https://bcit-anthony-sh-s.com");
         this.addBtn = document.getElementById("default-adding-button");
         this.queryBtn = document.getElementById("execute-btn");
     }
@@ -285,8 +285,8 @@ class EventHandler {
 
 class Server {
     constructor() {
-        // this.dbController = new DBController("https://bcit-anthony-sh-s.com");
-        this.dbController = new DBController("https://db-05b1.onrender.com");
+        this.dbController = new DBController("https://bcit-anthony-sh-s.com");
+        // this.dbController = new DBController("https://db-05b1.onrender.com");
         this.textSetter = new TextSetter();
         this.eventHandler = new EventHandler();
     }
