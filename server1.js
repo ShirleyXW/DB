@@ -199,17 +199,14 @@ class EventHandler {
         }
 
         const tableName = match[1];
-        const columns = match[2] ? match[2].split(/\s*,\s*/) : ["name", "dateOfBirth"]; // 명시된 컬럼 또는 기본 컬럼
+        const columns = match[2] ? match[2].split(/\s*,\s*/) : ["name", "dateOfBirth"];
         let valuesPart = match[3];
 
-        // 줄바꿈과 공백을 정리하여 처리
         valuesPart = valuesPart.replace(/\s*\n\s*/g, " ").trim();
 
-        // 여러 개의 VALUES 그룹을 분리
         const values = valuesPart.split(/\),\s*\(/).map((row) => row.replace(/[()]/g, ""));
 
         const records = values.map((row) => {
-            // 값 추출 (문자열, 숫자, 날짜 포함)
             const rowValues = row.match(
                 /"([^"]*)"|'([^']*)'|(\d{4}-\d{2}-\d{2})|(\d+\.\d+)|(\d+)/g
             );

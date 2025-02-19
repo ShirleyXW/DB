@@ -7,6 +7,13 @@ class DBManager {
     constructor() {
         this.connection = null;
     }
+    async ensureConnected() {
+        if (!this.connection) {
+            console.warn("Database connection lost. Reconnecting...");
+            await this.connectDatabase();
+        }
+    }
+
     async connectDatabase() {
         try {
             this.connection = await mysql.createConnection({
@@ -46,6 +53,7 @@ class DBManager {
     }
 
     async execute(statement) {
+        this.ensureConnected();
         if (!this.connection) {
             throw new Error("Database not connected!");
         }
@@ -58,6 +66,7 @@ class DBManager {
         }
     }
     async insert(records) {
+        this.ensureConnected();
         if (!this.connection) {
             throw new Error("Database not connected!");
         }
@@ -206,6 +215,7 @@ const dbManager = new DBManager();
     try {
         await dbManager.connectDatabase();
         await dbManager.createPatientTable();
+        await dbManager.ensureConnected();
         if (!dbManager.connection) {
             return;
         }
