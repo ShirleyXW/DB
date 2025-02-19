@@ -1,7 +1,9 @@
-const mysql = require("mysql2/promise");
-const http = require("http");
-const url = require("url");
-require("dotenv").config();
+import mysql from "mysql2/promise";
+import http from "http";
+import url from "url";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 class DBManager {
     constructor() {
