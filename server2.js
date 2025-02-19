@@ -1,9 +1,13 @@
-import mysql from "mysql2/promise";
-import http from "http";
-import url from "url";
-import dotenv from "dotenv";
+// import mysql from "mysql2/promise";
+// import http from "http";
+// import url from "url";
+// import dotenv from "dotenv";
 
 dotenv.config();
+const mysql = require("mysql2/promise");
+const http = require("http");
+const url = require("url");
+require("dotenv").config();
 
 class DBManager {
     constructor() {
@@ -15,16 +19,44 @@ class DBManager {
             await this.connectDatabase();
         }
     }
+    // async connectDatabase() {
+    //     try {
+    //         this.connection = await mysql.createConnection({
+    //             host: process.env.DB_HOST,
+    //             user: process.env.DB_USER,
+    //             password: process.env.DB_PASSWORD,
+    //             database: process.env.DB_NAME,
+    //         });
+    //         console.log("connected to MySQL, connection ID: " + this.connection.threadId);
+    //         return true;
+    //     } catch (err) {
+    //         console.error("connect failure: " + err.stack);
+    //         return false;
+    //     }
+    // }
 
-    async connectDatabase() {
+    async isTableExists() {
+        try {
+            const [rows] = await this.connection.query("SHOW TABLES LIKE 'patient';");
+            return rows.length > 0;
+        } catch (err) {
+            console.error("Check table failure:", err);
+            return false;
+        }
+    }
+    async connectDatabase(user) {
+        if (this.connection) {
+            await this.connection.end();
+        }
         try {
             this.connection = await mysql.createConnection({
                 host: process.env.DB_HOST,
-                user: process.env.DB_USER,
+                user: user,
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_NAME,
             });
             console.log("connected to MySQL, connection ID: " + this.connection.threadId);
+            console.log("connected as user: " + user);
             return true;
         } catch (err) {
             console.error("connect failure: " + err.stack);
@@ -55,9 +87,14 @@ class DBManager {
     }
 
     async execute(statement) {
-        await this.ensureConnected();
         if (!this.connection) {
             throw new Error("Database not connected!");
+        }
+        const tableExists = await this.isTableExists();
+        if(!tableExists) {
+            await this.connectDatabase(process.env.DB_ADMIN_USER);
+            await this.createPatientTable();
+            await this.connectDatabase(process.env.DB_LIMITED_USER);
         }
         try {
             const [result] = await this.connection.query(statement);
@@ -68,10 +105,18 @@ class DBManager {
         }
     }
     async insert(records) {
-        await this.ensureConnected();
         if (!this.connection) {
             throw new Error("Database not connected!");
         }
+        // table does not exist
+        // create table
+        const tableExists = await this.isTableExists();
+        if(!tableExists) {
+            await this.connectDatabase(process.env.DB_ADMIN_USER);
+            await this.createPatientTable();
+            await this.connectDatabase(process.env.DB_LIMITED_USER);
+        }
+        
         const isBulkInsert = Array.isArray(records);
 
         const insertRecord = isBulkInsert
@@ -125,9 +170,6 @@ class RequestHandler {
             const rows = await this.dbManager.execute(statement);
             res.writeHead(200, {
                 "Content-Type": "application/json",
-                // "Access-Control-Allow-Origin": "*",
-                // "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                // "Access-Control-Allow-Headers": "Content-Type",
             });
             res.end(JSON.stringify({ isSuccess: true, data: rows }));
         } catch (err) {
@@ -191,6 +233,15 @@ class Server {
             const parsedUrl = url.parse(req.url, true);
             const pathName = parsedUrl.pathname;
             const query = parsedUrl.query;
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+            res.setHeader("Content-Type", "application/json");
+            // setHeader;
+            if (req.method === "OPTIONS") {
+                res.writeHead(204);
+                return res.end();
+            }
             if (pathName === "/api/v1/sql/insert" && req.method === "POST") {
                 this.requestHandler.insertPatient(req, res);
             } else if (pathName === "/api/v1/sql/select" && req.method === "GET") {
@@ -201,7 +252,7 @@ class Server {
                 res.writeHead(404, {
                     "Content-Type": "text/plain",
                 });
-                res.end("404 Not Found");
+                return res.end("404 Not Found");
             }
         });
         server.listen(3020, () => {
@@ -215,9 +266,7 @@ const dbManager = new DBManager();
     const requestHandler = new RequestHandler(dbManager);
     const server = new Server(dbManager, requestHandler);
     try {
-        await dbManager.connectDatabase();
-        await dbManager.createPatientTable();
-        await dbManager.ensureConnected();
+        await dbManager.connectDatabase(process.env.DB_LIMITED_USER);
         if (!dbManager.connection) {
             return;
         }
