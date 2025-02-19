@@ -53,7 +53,7 @@ class DBManager {
     }
 
     async execute(statement) {
-        this.ensureConnected();
+        await this.ensureConnected();
         if (!this.connection) {
             throw new Error("Database not connected!");
         }
@@ -66,7 +66,7 @@ class DBManager {
         }
     }
     async insert(records) {
-        this.ensureConnected();
+        await this.ensureConnected();
         if (!this.connection) {
             throw new Error("Database not connected!");
         }
