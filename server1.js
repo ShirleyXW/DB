@@ -285,7 +285,8 @@ class EventHandler {
 
 class Server {
     constructor() {
-        this.dbController = new DBController("https://bcit-anthony-sh-s.com");
+        // this.dbController = new DBController("https://bcit-anthony-sh-s.com");
+        this.dbController = new DBController("https://db-05b1.onrender.com");
         this.textSetter = new TextSetter();
         this.eventHandler = new EventHandler();
     }
