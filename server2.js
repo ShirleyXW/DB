@@ -3,7 +3,6 @@
 // import url from "url";
 // import dotenv from "dotenv";
 
-dotenv.config();
 const mysql = require("mysql2/promise");
 const http = require("http");
 const url = require("url");
